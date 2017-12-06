@@ -1,10 +1,10 @@
-subclass_name: alphaq.AlphaQClusterCatalog
+subclass_name: alphaq_clusters.AlphaQClusterCatalog
 
 filename: /global/projecta/projectdirs/lsst/groups/CS/descqa/catalog/ANL_AlphaQ_clusters_v2.1.1.hdf5
 
 lightcone: true
 
-version: "2.1"
+version: "2.1.1"
 
 creators: ['Eve Kovacs', 'Danila Korytov', 'Katrin Heitmann', 'Andrew Benson', 'Joe Hollowed']
 

@@ -8,7 +8,7 @@ import h5py
 from astropy.cosmology import FlatLambdaCDM
 from GCR import BaseGenericCatalog
 import pdb
-from alphaq import AlphaQGalaxyCatalog
+from .alphaq import AlphaQGalaxyCatalog
 
 __all__ = ['AlphaQClusterCatalog']
 
@@ -33,15 +33,15 @@ class AlphaQClusterCatalog(AlphaQGalaxyCatalog):
 
     def _subclass_init(self, filename, **kwargs):
         super(AlphaQClusterCatalog, self)._subclass_init(filename, **kwargs)
-        pdb.set_trace()
-        with h5py.File(self._file, 'r') as fh:
-            self._native_filter_quantities = set(fh[next(fh.keys())].attrs)
+        #with h5py.File(self._file, 'r') as fh:
+            #pdb.set_trace()
+            #self._native_filter_quantities = set(fh[next(fh.keys().__iter__())].attrs)
 
 
     def _iter_native_dataset(self, native_filters=None):
         with h5py.File(self._file, 'r') as fh:
-            for key in fh:
-                halo = fh[key]
+            for key in fh['clusters']:
+                halo = fh['clusters'][key]
 
                 if native_filters and not all(f[0](*(halo.attrs[k] for k in f[1:])) for f in native_filters):
                     continue
@@ -51,15 +51,19 @@ class AlphaQClusterCatalog(AlphaQGalaxyCatalog):
 
                 yield native_quantity_getter
     
+
     def _generate_native_quantity_list(self):
         with h5py.File(self._file, 'r') as fh:
             # quantities are the same for all halos - we use the first here
-            hgroup = fh['halo_1']
-            hobjects = list(hgroup.attrs.keys())
+            hgroup = fh['clusters']['halo_1']
+            hattrs = list(hgroup.attrs.keys())
+            hobjects = []
             #get all the names of objects in this tree
             hgroup.visit(hobjects.append)
             #filter out the group objects and keep the dataset objects
             hdatasets = [hobject for hobject in hobjects if type(hgroup[hobject]) != h5py.Group]
+            hdatasets = hdatasets + hattrs
+            pdb.set_trace()
             native_quantities = set(hdatasets)
         return native_quantities
 
@@ -74,10 +78,10 @@ class AlphaQClusterCatalog(AlphaQGalaxyCatalog):
 
     def _get_native_quantity_info_dict(self, quantity, default=None):
         with h5py.File(self._file,'r') as fh:
-            if 'galaxyProperties/'+quantity not in fh:
+            if 'halo1/'+quantity not in fh['clusters']:
                 return default
             else:
                 info_dict = dict()
-                for key in fh['galaxyProperties/'+quantity].attrs:
-                    info_dict[key] = fh['galaxyProperties/'+quantity].attrs[key]
+                for key in fh['clusters']['halo_1/'+quantity].attrs:
+                    info_dict[key] = fh['clusters']['halo_1/'+quantity].attrs[key]
                 return info_dict
